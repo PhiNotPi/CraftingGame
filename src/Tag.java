@@ -1,7 +1,12 @@
 public class Tag {
 
+  // name, which is used mainly if this is a String tag
+  // otherwise, it is set to the FieldName
   String name;
+  // used only if a BoolField
   Boolean bool;
+  // tags like [Density:1.4] have min and max set to the same value
+  // this allows the use of RealFields in recipes
   Double min;
   Double max;
 
@@ -32,7 +37,10 @@ public class Tag {
 
   public String toString() {
     if (this.min != null) {
-      return "[" + name + ":" + min + "]";
+      if (max.equals(min)) {
+        return "[" + name + ":" + min + "]";
+      }
+      return "[" + name + ":" + min + "," + max + "]";
     }
     if (this.bool != null) {
       return "[" + name + ":" + bool + "]";
