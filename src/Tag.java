@@ -48,4 +48,8 @@ public class Tag {
     return "[" + fieldName() + ":" + name + "]";
   }
 
+  public boolean isValid() {
+    return TagData.isValid(this);
+  }
+
 }
