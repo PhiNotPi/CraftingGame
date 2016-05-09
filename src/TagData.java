@@ -6,14 +6,18 @@ import java.util.Set;
 public class TagData {
 
   public static void main(String[] args) {
+    TagData.printAll();
+    System.out.println();
     TagSet ts = new TagSet();
     ts.add(new Tag("Oak"), new Tag("Log"));
     System.out.print("item: ");
     ts.print();
     System.out.print("with inheritance: ");
     ts.printAll();
+    System.out.println();
     ts = new TagSet();
-    ts.add(new Tag("Mahogany"), new Tag("Log"));
+    // the [density:true] tag should be auto-rejected
+    ts.add(new Tag("Mahogany"), new Tag("Log"), new Tag("Density", true));
     System.out.print("item: ");
     ts.print();
     System.out.print("with inheritance: ");
@@ -97,6 +101,7 @@ public class TagData {
 
   private static class StringField extends FieldWithDefs {
     Set<StringOption> rootOptions;
+    Set<String> allOptions;
     Map<String, Map<String, Tag>> defaults;
 
     StringField(String name) {
@@ -105,6 +110,7 @@ public class TagData {
       this.parent = null;
       this.subfields = new HashSet<Field>();
       this.rootOptions = new HashSet<StringOption>();
+      this.allOptions = new HashSet<String>();
       this.defaults = new HashMap<String, Map<String, Tag>>();
     }
 
@@ -276,11 +282,29 @@ public class TagData {
     return putField(pardata, new StringField(data));
   }
 
+  // helper
+  static boolean putStringField(String pardata, String... data) {
+    boolean res = true;
+    for (String d : data) {
+      res &= putStringField(pardata, d);
+    }
+    return res;
+  }
+
   static boolean putBoolField(String pardata, String data) {
     if (data == null || map.get(data) != null) {
       return false;
     }
     return putField(pardata, new BoolField(data));
+  }
+
+  // helper
+  static boolean putBoolField(String pardata, String... data) {
+    boolean res = true;
+    for (String d : data) {
+      res &= putBoolField(pardata, d);
+    }
+    return res;
   }
 
   static boolean putRealField(String pardata, String data) {
@@ -289,6 +313,15 @@ public class TagData {
     }
     putField(pardata, new RealField(data));
     return true;
+  }
+
+  // helper
+  static boolean putRealField(String pardata, String... data) {
+    boolean res = true;
+    for (String d : data) {
+      res &= putRealField(pardata, d);
+    }
+    return res;
   }
 
   // creates a StringOption for a given parent, which can be either a
@@ -306,16 +339,27 @@ public class TagData {
       // StringField supplied
       StringOption n = new StringOption(data, pF.fieldName, pF);
       pF.rootOptions.add(n);
+      pF.allOptions.add(data);
       mapAdd(n);
       return true;
     } else if (pO != null) {
       // StringOption supplied
       StringOption n = new StringOption(data, pO.fieldName, pO);
       pO.suboptions.add(n);
+      SFmap.get(pO.fieldName).allOptions.add(data);
       mapAdd(n);
       return true;
     }
     return false;
+  }
+
+  // helper
+  static boolean putStringOption(String pardata, String... data) {
+    boolean res = true;
+    for (String d : data) {
+      res &= putStringOption(pardata, d);
+    }
+    return res;
   }
 
   // For a given StringOption, adds the Tag t as a default value implied by the
@@ -374,6 +418,112 @@ public class TagData {
   static Set<String> getAllFields() {
     Set<String> res = new HashSet<String>();
     res.addAll(Fmap.keySet());
+    return res;
+  }
+
+  // determines whether a given tag is valid
+  static boolean isValid(Tag t) {
+    String field = t.fieldName();
+    BoolField Bf = BFmap.get(field);
+    StringField Sf = SFmap.get(field);
+    RealField Rf = RFmap.get(field);
+    if (Bf != null) {
+      if (t.bool != null && t.min == null && t.name.equals(field)) {
+        return true;
+      }
+    } else if (Rf != null) {
+      if (t.bool == null && t.min != null && t.max != null && t.min <= t.max
+          && t.name.equals(field)) {
+        return true;
+      }
+    } else if (Sf != null) {
+      if (t.bool == null && t.min == null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // displays EVERYTHING
+  public static void printAll() {
+    for (Field f : rootFields) {
+      printAllR(f, 0, null);
+    }
+  }
+
+  // recursive print helper
+  public static void printAllR(Node curnode, int depth, Map<String, Tag> defs) {
+    if (curnode instanceof StringField) {
+      StringField cur = (StringField) curnode;
+      System.out.print(indent(depth) + "cat " + cur.name);
+      if (cur.rootOptions.size() == 0 && cur.subfields.size() == 0) {
+        System.out.println(";");
+      } else {
+        System.out.println(" {");
+        for (StringOption o : cur.rootOptions) {
+          printAllR(o, depth + 1, cur.defaults.get(o.name));
+        }
+        for (Field f : cur.subfields) {
+          printAllR(f, depth + 1, null);
+        }
+        System.out.println(indent(depth) + "}");
+      }
+    } else if (curnode instanceof RealField) {
+      RealField cur = (RealField) curnode;
+      System.out.println(indent(depth) + "real " + cur.name + ";");
+    } else if (curnode instanceof BoolField) {
+      BoolField cur = (BoolField) curnode;
+      System.out.print(indent(depth) + "bool " + cur.name);
+      if (cur.subfields.size() == 0) {
+        System.out.println(";");
+      } else {
+        System.out.println(" {");
+        for (Field f : cur.subfields) {
+          printAllR(f, depth + 1, null);
+        }
+        System.out.println(indent(depth) + "}");
+      }
+    } else if (curnode instanceof StringOption) {
+      StringOption cur = (StringOption) curnode;
+      System.out.print(indent(depth) + "opt " + cur.name);
+      if (cur.suboptions.size() == 0
+          && (defs == null || defs.keySet().size() == 0)) {
+        System.out.println(";");
+      } else {
+        System.out.println(" {");
+        if (defs != null) {
+          for (String key : defs.keySet()) {
+            Tag t = defs.get(key);
+            if (SFmap.get(key) != null) {
+              System.out.println(indent(depth + 1) + "~" + t.name + ";");
+            } else if (BFmap.get(key) != null) {
+              System.out.println(indent(depth + 1) + "~" + t.name + ": "
+                  + t.bool + ";");
+            } else if (RFmap.get(key) != null) {
+              if (t.min.equals(t.max)) {
+                System.out.println(indent(depth + 1) + "~" + t.name + ": "
+                    + t.min + ";");
+              } else {
+                System.out.println(indent(depth + 1) + "~" + t.name + ": "
+                    + t.min + "," + t.max + ";");
+              }
+            }
+          }
+        }
+        for (StringOption o : cur.suboptions) {
+          printAllR(o, depth + 1, SFmap.get(cur.fieldName).defaults.get(o.name));
+        }
+        System.out.println(indent(depth) + "}");
+      }
+    }
+  }
+
+  // for indentation during printing
+  public static String indent(int depth) {
+    String res = "";
+    for (int i = 0; i < depth; i++) {
+      res += "  ";
+    }
     return res;
   }
 
