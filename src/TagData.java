@@ -50,20 +50,17 @@ public class TagData {
 
     // eventually, this will be replaced by a parser
     // and a config file to do everything
-    TagData.putStringField(null, "Material");
+    TagData.putStringField(null, "Material", "Shape");
     TagData.putStringOption("Material", "Wood");
-    TagData.putStringOption("Wood", "Oak");
-    TagData.putStringOption("Wood", "Mahogany");
+    TagData.putStringOption("Wood", "Oak", "Mahogany");
     TagData.putStringField("Material", "Color");
     TagData.putStringOption("Color", "Brown");
     TagData.putStringOption("Brown", "Reddish-Brown");
     TagData.putBoolField("Material", "Flammable");
     TagData.putRealField("Material", "Density");
-    TagData.putStringDefault("Wood", new Tag("Brown"));
-    TagData.putStringDefault("Wood", new Tag("Flammable", true));
-    TagData.putStringDefault("Wood", new Tag("Density", 2.7));
+    TagData.putStringDefault("Wood", new Tag("Brown"), new Tag("Flammable",
+        true), new Tag("Density", 2.7));
     TagData.putStringDefault("Mahogany", new Tag("Reddish-Brown"));
-    TagData.putStringField(null, "Shape");
     TagData.putStringOption("Shape", "Log");
     TagData.putRealField("Shape", "Volume");
     TagData.putStringDefault("Log", new Tag("Volume", 1.4));
@@ -374,6 +371,15 @@ public class TagData {
     return p.setDefault(n, t);
   }
 
+  // helper
+  static boolean putStringDefault(String pardata, Tag... tags) {
+    boolean res = true;
+    for (Tag t : tags) {
+      res &= putStringDefault(pardata, t);
+    }
+    return res;
+  }
+
   // Adds a Tag t to be a default tag implied by the chosen value of a boolean
   // field. Similarly, Tag t must be for an immediate subfield.
   static boolean putBoolDefault(String field, boolean val, Tag t) {
@@ -383,6 +389,15 @@ public class TagData {
     }
     n.setDefault(val, t);
     return true;
+  }
+
+  // helper
+  static boolean putBoolDefault(String field, boolean val, Tag... tags) {
+    boolean res = true;
+    for (Tag t : tags) {
+      res &= putBoolDefault(field, val, t);
+    }
+    return res;
   }
 
   // Determines the value of a subfield as implied by the provided Tag
