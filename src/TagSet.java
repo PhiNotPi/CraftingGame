@@ -5,7 +5,9 @@ import java.util.Set;
 
 public class TagSet {
 
+  // the map is FieldName to a Tag with that FieldName, used for easy lookup
   private Map<String, Tag> map;
+  // set of explicitly assigned Tags
   private Set<Tag> tags;
 
   TagSet() {
@@ -13,6 +15,7 @@ public class TagSet {
     this.tags = new HashSet<Tag>();
   }
 
+  // Add a Tag and update the Map
   public boolean add(Tag t) {
     if (t == null) {
       return false;
@@ -27,6 +30,7 @@ public class TagSet {
     return true;
   }
 
+  // for my convenience
   public boolean add(Tag... tags) {
     boolean res = true;
     for (Tag t : tags) {
@@ -35,6 +39,7 @@ public class TagSet {
     return res;
   }
 
+  // print only the Tags explicitly assigned, nothing is implied
   public void print() {
     for (Tag t : tags) {
       System.out.print(t);
@@ -42,6 +47,7 @@ public class TagSet {
     System.out.println();
   }
 
+  // print the value of every possible property
   public void printAll() {
     for (String key : TagData.getAllFields()) {
       Tag t = getTag(key);
@@ -54,6 +60,8 @@ public class TagSet {
     System.out.println();
   }
 
+  // determine the Tag associated with a given Field, using recursive calls to
+  // tag defaults if needed
   public Tag getTag(String field) {
     if (field == null) {
       return null;
