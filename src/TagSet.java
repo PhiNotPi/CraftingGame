@@ -17,7 +17,7 @@ public class TagSet {
 
   // Add a Tag and update the Map
   public boolean add(Tag t) {
-    if (t == null) {
+    if (t == null || !t.isValid()) {
       return false;
     }
     String field = t.fieldName();
