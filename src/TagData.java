@@ -4,72 +4,20 @@ import java.util.Map;
 import java.util.Set;
 
 public class TagData {
-
-  public static void main(String[] args) {
-    TagData.printAll();
-    System.out.println();
-    TagSet ts = new TagSet();
-    ts.add(new CategTag("Oak"), new CategTag("Log"));
-    System.out.print("item: ");
-    ts.print();
-    System.out.print("with inheritance: ");
-    ts.printAll();
-    System.out.println();
-    ts = new TagSet();
-    // the [density:true] tag should be auto-rejected
-    ts.add(new CategTag("Mahogany"), new CategTag("Log"), new BoolTag(
-        "Density", true), new StringTag("Name", "BestLogEver"));
-    System.out.print("item: ");
-    ts.print();
-    System.out.print("with inheritance: ");
-    ts.printAll();
-  }
-
   // Each node has a unique name, and these maps
   // go from name->node. The different maps are
   // for storing only specific types of nodes, so
   // that less casting is needed.
-  private static Map<String, Node> map;
-  private static Map<String, CategField> CFmap;
-  private static Map<String, CategOption> COmap;
-  private static Map<String, BoolField> BFmap;
-  private static Map<String, RealField> RFmap;
-  private static Map<String, StringField> SFmap;
-  private static Map<String, Field> Fmap;
-  private static Map<String, FieldWithDefs> FWDmap;
+  private static Map<String, Node> map = new HashMap<String, Node>();
+  private static Map<String, CategField> CFmap = new HashMap<String, CategField>();
+  private static Map<String, CategOption> COmap = new HashMap<String, CategOption>();
+  private static Map<String, BoolField> BFmap = new HashMap<String, BoolField>();
+  private static Map<String, RealField> RFmap = new HashMap<String, RealField>();
+  private static Map<String, StringField> SFmap = new HashMap<String, StringField>();
+  private static Map<String, Field> Fmap = new HashMap<String, Field>();
+  private static Map<String, FieldWithDefs> FWDmap = new HashMap<String, FieldWithDefs>();
   // these are Fields without a parent field
-  private static Set<Field> rootFields;
-
-  static {
-    map = new HashMap<String, Node>();
-    CFmap = new HashMap<String, CategField>();
-    COmap = new HashMap<String, CategOption>();
-    BFmap = new HashMap<String, BoolField>();
-    RFmap = new HashMap<String, RealField>();
-    SFmap = new HashMap<String, StringField>();
-    Fmap = new HashMap<String, Field>();
-    FWDmap = new HashMap<String, FieldWithDefs>();
-    rootFields = new HashSet<Field>();
-
-    // eventually, this will be replaced by a parser
-    // and a config file to do everything
-    TagData.putCategField(null, "Material", "Shape");
-    TagData.putStringField(null, "Name");
-    TagData.putCategOption("Material", "Wood");
-    TagData.putCategOption("Wood", "Oak", "Mahogany");
-    TagData.putCategField("Material", "Color");
-    TagData.putCategOption("Color", "Brown");
-    TagData.putCategOption("Brown", "Reddish-Brown");
-    TagData.putBoolField("Material", "Flammable");
-    TagData.putRealField("Material", "Density");
-    TagData.putCategDefault("Wood", new CategTag("Brown"), new BoolTag(
-        "Flammable", true), new RealTag("Density", 2.7));
-    TagData.putCategDefault("Mahogany", new CategTag("Reddish-Brown"));
-    TagData.putCategOption("Shape", "Log");
-    TagData.putRealField("Shape", "Volume");
-    TagData.putCategDefault("Log", new RealTag("Volume", 1.4));
-
-  }
+  private static Set<Field> rootFields = new HashSet<Field>();
 
   private static abstract class Node {
     // name is unique
@@ -525,6 +473,24 @@ public class TagData {
         System.out.println(";");
       } else {
         System.out.println(" {");
+        if (cur.truedefs.size() > 0) {
+          System.out.println(indent(depth + 1) + "true {");
+          for (String key : cur.truedefs.keySet()) {
+            Tag tag = cur.truedefs.get(key);
+            System.out
+                .println(indent(depth + 2) + TagDataParser.tagFormat(tag));
+          }
+          System.out.println(indent(depth + 1) + "}");
+        }
+        if (cur.falsedefs.size() > 0) {
+          System.out.println(indent(depth + 1) + "false {");
+          for (String key : cur.falsedefs.keySet()) {
+            Tag tag = cur.falsedefs.get(key);
+            System.out
+                .println(indent(depth + 2) + TagDataParser.tagFormat(tag));
+          }
+          System.out.println(indent(depth + 1) + "}");
+        }
         for (Field f : cur.subfields) {
           printAllR(f, depth + 1, null);
         }
@@ -541,22 +507,8 @@ public class TagData {
         if (defs != null) {
           for (String key : defs.keySet()) {
             Tag tag = defs.get(key);
-            if (tag instanceof CategTag) {
-              System.out.println(indent(depth + 1) + "~"
-                  + ((CategTag) tag).name + ";");
-            } else if (tag instanceof BoolTag) {
-              System.out.println(indent(depth + 1) + "~" + tag.fieldName + ": "
-                  + ((BoolTag) tag).val + ";");
-            } else if (tag instanceof RealTag) {
-              RealTag t = (RealTag) tag;
-              if (t.min.equals(t.max)) {
-                System.out.println(indent(depth + 1) + "~" + tag.fieldName
-                    + ": " + t.min + ";");
-              } else {
-                System.out.println(indent(depth + 1) + "~" + tag.fieldName
-                    + ": " + t.min + "," + t.max + ";");
-              }
-            }
+            System.out
+                .println(indent(depth + 1) + TagDataParser.tagFormat(tag));
           }
         }
         for (CategOption o : cur.suboptions) {
