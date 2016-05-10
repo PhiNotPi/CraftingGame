@@ -1,0 +1,30 @@
+# Keywords (case-insensitive): cat opt str real bool true false
+# Key-characters: semicolon, curly braces, octothorpe, double quotes
+# Reserved characters: colon, comma
+# Newlines are optional and can be replaced by a space
+# Semicolons after field names or before closing braces are optional
+
+str name;                     # optional semicolon
+cat shape {
+  opt log {
+    volume 1.4;               # colon before number is optional (but discouraged)
+  }
+  real volume;
+}
+cat material {
+  opt wood {
+    density 2.7;
+    Flammable tRUe;           # case-insensitive.  Uses the field type of "flammable" to correct "tRUe" to "true"
+    Misc "Test String";       # case-sensitive data
+    opt mahogany;
+    opt oak;
+  }
+  real density;
+  str misc;
+  cat color {
+    opt brown {
+      opt reddish-brown;      # doesn't have to be expanded with braces if it is empty
+    }
+  }
+  bool flammable;
+}
