@@ -20,7 +20,7 @@ public class TagSet {
     if (t == null || !t.isValid()) {
       return false;
     }
-    String field = t.fieldName();
+    String field = t.fieldName;
     Tag prev = map.get(field);
     if (prev != null) {
       tags.remove(prev);
