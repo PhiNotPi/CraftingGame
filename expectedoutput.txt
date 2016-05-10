@@ -1,3 +1,4 @@
+str Name;
 cat Shape {
   opt Log {
     ~Volume: 1.4;
@@ -19,12 +20,12 @@ cat Material {
       opt Reddish-Brown;
     }
   }
-  real Density;
   bool Flammable;
+  real Density;
 }
 
 item: [Shape:Log][Material:Oak]
-with inheritance: [Shape:Log][Density:2.7][Volume:1.4][Material:Oak][Flammable:true][Color:Brown]
+with inheritance: [Name:null][Shape:Log][Density:2.7][Volume:1.4][Material:Oak][Flammable:true][Color:Brown]
 
-item: [Shape:Log][Material:Mahogany]
-with inheritance: [Shape:Log][Density:2.7][Volume:1.4][Material:Mahogany][Flammable:true][Color:Reddish-Brown]
+item: [Shape:Log][Material:Mahogany][Name:BestLogEver]
+with inheritance: [Name:BestLogEver][Shape:Log][Density:2.7][Volume:1.4][Material:Mahogany][Flammable:true][Color:Reddish-Brown]
