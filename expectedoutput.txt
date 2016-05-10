@@ -1,31 +1,24 @@
-str Name;
-cat Shape {
-  opt Log {
-    ~Volume: 1.4;
+cat material {
+  opt wood {
+    density 2.7;
+    flammable true;
+    misc "Test String";
+    opt oak;
+    opt mahogany;
   }
-  real Volume;
-}
-cat Material {
-  opt Wood {
-    ~Density: 2.7;
-    ~Flammable: true;
-    ~Brown;
-    opt Mahogany {
-      ~Reddish-Brown;
-    }
-    opt Oak;
-  }
-  cat Color {
-    opt Brown {
-      opt Reddish-Brown;
+  str misc;
+  real density;
+  bool flammable;
+  cat color {
+    opt brown {
+      opt reddish-brown;
     }
   }
-  bool Flammable;
-  real Density;
 }
-
-item: [Shape:Log][Material:Oak]
-with inheritance: [Name:null][Shape:Log][Density:2.7][Volume:1.4][Material:Oak][Flammable:true][Color:Brown]
-
-item: [Shape:Log][Material:Mahogany][Name:BestLogEver]
-with inheritance: [Name:BestLogEver][Shape:Log][Density:2.7][Volume:1.4][Material:Mahogany][Flammable:true][Color:Reddish-Brown]
+str name;
+cat shape {
+  opt log {
+    volume 1.4;
+  }
+  real volume;
+}
