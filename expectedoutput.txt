@@ -1,0 +1,30 @@
+cat Shape {
+  opt Log {
+    ~Volume: 1.4;
+  }
+  real Volume;
+}
+cat Material {
+  opt Wood {
+    ~Density: 2.7;
+    ~Flammable: true;
+    ~Brown;
+    opt Mahogany {
+      ~Reddish-Brown;
+    }
+    opt Oak;
+  }
+  cat Color {
+    opt Brown {
+      opt Reddish-Brown;
+    }
+  }
+  real Density;
+  bool Flammable;
+}
+
+item: [Shape:Log][Material:Oak]
+with inheritance: [Shape:Log][Density:2.7][Volume:1.4][Material:Oak][Flammable:true][Color:Brown]
+
+item: [Shape:Log][Material:Mahogany]
+with inheritance: [Shape:Log][Density:2.7][Volume:1.4][Material:Mahogany][Flammable:true][Color:Reddish-Brown]
