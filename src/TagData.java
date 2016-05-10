@@ -9,7 +9,7 @@ public class TagData {
     TagData.printAll();
     System.out.println();
     TagSet ts = new TagSet();
-    ts.add(new Tag("Oak"), new Tag("Log"));
+    ts.add(new CategTag("Oak"), new CategTag("Log"));
     System.out.print("item: ");
     ts.print();
     System.out.print("with inheritance: ");
@@ -17,7 +17,8 @@ public class TagData {
     System.out.println();
     ts = new TagSet();
     // the [density:true] tag should be auto-rejected
-    ts.add(new Tag("Mahogany"), new Tag("Log"), new Tag("Density", true));
+    ts.add(new CategTag("Mahogany"), new CategTag("Log"), new BoolTag(
+        "Density", true), new StringTag("Name", "BestLogEver"));
     System.out.print("item: ");
     ts.print();
     System.out.print("with inheritance: ");
@@ -29,10 +30,11 @@ public class TagData {
   // for storing only specific types of nodes, so
   // that less casting is needed.
   private static Map<String, Node> map;
-  private static Map<String, StringField> SFmap;
-  private static Map<String, StringOption> SOmap;
+  private static Map<String, CategField> CFmap;
+  private static Map<String, CategOption> COmap;
   private static Map<String, BoolField> BFmap;
   private static Map<String, RealField> RFmap;
+  private static Map<String, StringField> SFmap;
   private static Map<String, Field> Fmap;
   private static Map<String, FieldWithDefs> FWDmap;
   // these are Fields without a parent field
@@ -40,30 +42,32 @@ public class TagData {
 
   static {
     map = new HashMap<String, Node>();
-    SFmap = new HashMap<String, StringField>();
-    SOmap = new HashMap<String, StringOption>();
+    CFmap = new HashMap<String, CategField>();
+    COmap = new HashMap<String, CategOption>();
     BFmap = new HashMap<String, BoolField>();
     RFmap = new HashMap<String, RealField>();
+    SFmap = new HashMap<String, StringField>();
     Fmap = new HashMap<String, Field>();
     FWDmap = new HashMap<String, FieldWithDefs>();
     rootFields = new HashSet<Field>();
 
     // eventually, this will be replaced by a parser
     // and a config file to do everything
-    TagData.putStringField(null, "Material", "Shape");
-    TagData.putStringOption("Material", "Wood");
-    TagData.putStringOption("Wood", "Oak", "Mahogany");
-    TagData.putStringField("Material", "Color");
-    TagData.putStringOption("Color", "Brown");
-    TagData.putStringOption("Brown", "Reddish-Brown");
+    TagData.putCategField(null, "Material", "Shape");
+    TagData.putStringField(null, "Name");
+    TagData.putCategOption("Material", "Wood");
+    TagData.putCategOption("Wood", "Oak", "Mahogany");
+    TagData.putCategField("Material", "Color");
+    TagData.putCategOption("Color", "Brown");
+    TagData.putCategOption("Brown", "Reddish-Brown");
     TagData.putBoolField("Material", "Flammable");
     TagData.putRealField("Material", "Density");
-    TagData.putStringDefault("Wood", new Tag("Brown"), new Tag("Flammable",
-        true), new Tag("Density", 2.7));
-    TagData.putStringDefault("Mahogany", new Tag("Reddish-Brown"));
-    TagData.putStringOption("Shape", "Log");
+    TagData.putCategDefault("Wood", new CategTag("Brown"), new BoolTag(
+        "Flammable", true), new RealTag("Density", 2.7));
+    TagData.putCategDefault("Mahogany", new CategTag("Reddish-Brown"));
+    TagData.putCategOption("Shape", "Log");
     TagData.putRealField("Shape", "Volume");
-    TagData.putStringDefault("Log", new Tag("Volume", 1.4));
+    TagData.putCategDefault("Log", new RealTag("Volume", 1.4));
 
   }
 
@@ -71,7 +75,7 @@ public class TagData {
     // name is unique
     String name;
     // field name, which differs from this.name only in the case of
-    // StringOptions
+    // CategOptions
     String fieldName;
     // where inheritance comes from
     Node parent;
@@ -83,30 +87,30 @@ public class TagData {
 
   // this class contains subfields, and has default
   // values of the subfields depending on its current value.
-  // FWDs must be categorical, like either StringField or BoolField
+  // FWDs must be categorical, like either CategField or BoolField
   private static abstract class FieldWithDefs extends Field {
     // given a tag value, and a desired subfield, return the default value of
     // the subfield
     abstract Tag getDefault(Tag value, String subfield);
 
     // subfields are fields that depend on this field
-    // for example, an SF named "color" could be a subfield of a SF named
+    // for example, an CF named "color" could be a subfield of a CF named
     // "material"
     Set<Field> subfields;
     // the code to create defaults is more specialized to each FWB type.
   }
 
-  private static class StringField extends FieldWithDefs {
-    Set<StringOption> rootOptions;
+  private static class CategField extends FieldWithDefs {
+    Set<CategOption> rootOptions;
     Set<String> allOptions;
     Map<String, Map<String, Tag>> defaults;
 
-    StringField(String name) {
+    CategField(String name) {
       this.name = name;
       this.fieldName = name;
       this.parent = null;
       this.subfields = new HashSet<Field>();
-      this.rootOptions = new HashSet<StringOption>();
+      this.rootOptions = new HashSet<CategOption>();
       this.allOptions = new HashSet<String>();
       this.defaults = new HashMap<String, Map<String, Tag>>();
     }
@@ -115,23 +119,23 @@ public class TagData {
     // depending on what information is provided
     @Override
     Tag getDefault(Tag value, String subfield) {
-      if (value == null) {
+      if (value == null || !(value instanceof CategTag)) {
         return null;
       }
-      return getDefault(value.name, subfield);
+      return getDefault(((CategTag) value).name, subfield);
     }
 
     Tag getDefault(String value, String subfield) {
       if (value == null) {
         return null;
       }
-      return getDefault(SOmap.get(value), subfield);
+      return getDefault(COmap.get(value), subfield);
     }
 
     // the option is a selected option, like "wood",
     // and subfield is the selected subfield, like "color."
     // Of course, "wood" must be an option for this particular field
-    Tag getDefault(StringOption option, String subfield) {
+    Tag getDefault(CategOption option, String subfield) {
       if (option == null) {
         return null;
       }
@@ -146,7 +150,7 @@ public class TagData {
 
     // An example might be a Node named "wood" and a tag [color:brown]
     boolean setDefault(Node option, Tag val) {
-      String subfield = val.fieldName();
+      String subfield = val.fieldName;
       if (option == null || option.fieldName != this.name || subfield == null
           || Fmap.get(subfield) == null
           || !this.subfields.contains(Fmap.get(subfield))) {
@@ -164,14 +168,14 @@ public class TagData {
     }
   }
 
-  private static class StringOption extends Node {
+  private static class CategOption extends Node {
     // options that inherit from it, so "oak" might be a suboption of "wood"
-    Set<StringOption> suboptions;
+    Set<CategOption> suboptions;
 
-    StringOption(String name, String fieldName, Node parent) {
+    CategOption(String name, String fieldName, Node parent) {
       this.name = name;
       this.fieldName = fieldName;
-      this.suboptions = new HashSet<StringOption>();
+      this.suboptions = new HashSet<CategOption>();
       this.parent = parent;
     }
   }
@@ -191,10 +195,11 @@ public class TagData {
 
     @Override
     Tag getDefault(Tag value, String subfield) {
-      if (value != null && value.fieldName() == this.name) {
+      if (value != null && value.fieldName == this.name
+          && value instanceof BoolTag) {
         // input Tag must be a tag of this type
         // then, we return the value from the appropriate Map
-        if (value.bool) {
+        if (((BoolTag) value).val) {
           return truedefs.get(subfield);
         }
         return falsedefs.get(subfield);
@@ -203,7 +208,7 @@ public class TagData {
     }
 
     boolean setDefault(boolean option, Tag val) {
-      String subfield = val.fieldName();
+      String subfield = val.fieldName;
       if (Fmap.get(subfield) == null
           || !this.subfields.contains(Fmap.get(subfield))) {
         // Tag ust be for an immediate subfield
@@ -211,9 +216,9 @@ public class TagData {
       }
       // add Tag to appropriate Map
       if (option) {
-        this.truedefs.put(val.fieldName(), val);
+        this.truedefs.put(val.fieldName, val);
       } else {
-        this.falsedefs.put(val.fieldName(), val);
+        this.falsedefs.put(val.fieldName, val);
       }
       return true;
     }
@@ -222,6 +227,14 @@ public class TagData {
   private static class RealField extends Field {
     // can't hold subfields, and "infinite" options
     RealField(String name) {
+      this.name = name;
+      this.fieldName = name;
+    }
+  }
+
+  private static class StringField extends Field {
+    // also can't hold subfields, and also "infinite" options
+    StringField(String name) {
       this.name = name;
       this.fieldName = name;
     }
@@ -250,17 +263,20 @@ public class TagData {
   // I've tried to contain all my casting to here
   private static void mapAdd(Node n) {
     map.put(n.name, n);
-    if (n instanceof StringField) {
-      SFmap.put(n.name, (StringField) n);
+    if (n instanceof CategField) {
+      CFmap.put(n.name, (CategField) n);
     }
-    if (n instanceof StringOption) {
-      SOmap.put(n.name, (StringOption) n);
+    if (n instanceof CategOption) {
+      COmap.put(n.name, (CategOption) n);
     }
     if (n instanceof BoolField) {
       BFmap.put(n.name, (BoolField) n);
     }
     if (n instanceof RealField) {
       RFmap.put(n.name, (RealField) n);
+    }
+    if (n instanceof StringField) {
+      SFmap.put(n.name, (StringField) n);
     }
     if (n instanceof Field) {
       Fmap.put(n.name, (Field) n);
@@ -272,18 +288,18 @@ public class TagData {
 
   // the put_???__Field methods just create a field of the given type/name for
   // the above putField method
-  static boolean putStringField(String pardata, String data) {
+  static boolean putCategField(String pardata, String data) {
     if (data == null || map.get(data) != null) {
       return false;
     }
-    return putField(pardata, new StringField(data));
+    return putField(pardata, new CategField(data));
   }
 
   // helper
-  static boolean putStringField(String pardata, String... data) {
+  static boolean putCategField(String pardata, String... data) {
     boolean res = true;
     for (String d : data) {
-      res &= putStringField(pardata, d);
+      res &= putCategField(pardata, d);
     }
     return res;
   }
@@ -321,29 +337,46 @@ public class TagData {
     return res;
   }
 
-  // creates a StringOption for a given parent, which can be either a
-  // StringField or another StringOption. If a SF is supplied, then it is a
-  // "root" option, but if a SO is supplied, then it inherits defaults from that
+  static boolean putStringField(String pardata, String data) {
+    if (data == null || map.get(data) != null) {
+      return false;
+    }
+    putField(pardata, new StringField(data));
+    return true;
+  }
+
+  // helper
+  static boolean putStringField(String pardata, String... data) {
+    boolean res = true;
+    for (String d : data) {
+      res &= putStringField(pardata, d);
+    }
+    return res;
+  }
+
+  // creates a CategOption for a given parent, which can be either a
+  // CategField or another CategOption. If a CF is supplied, then it is a
+  // "root" option, but if a CO is supplied, then it inherits defaults from that
   // option.
-  static boolean putStringOption(String pardata, String data) {
+  static boolean putCategOption(String pardata, String data) {
     if (data == null || map.get(data) != null || pardata == null
         || map.get(pardata) == null) {
       return false;
     }
-    StringField pF = SFmap.get(pardata);
-    StringOption pO = SOmap.get(pardata);
+    CategField pF = CFmap.get(pardata);
+    CategOption pO = COmap.get(pardata);
     if (pF != null) {
-      // StringField supplied
-      StringOption n = new StringOption(data, pF.fieldName, pF);
+      // CategField supplied
+      CategOption n = new CategOption(data, pF.fieldName, pF);
       pF.rootOptions.add(n);
       pF.allOptions.add(data);
       mapAdd(n);
       return true;
     } else if (pO != null) {
-      // StringOption supplied
-      StringOption n = new StringOption(data, pO.fieldName, pO);
+      // CategOption supplied
+      CategOption n = new CategOption(data, pO.fieldName, pO);
       pO.suboptions.add(n);
-      SFmap.get(pO.fieldName).allOptions.add(data);
+      CFmap.get(pO.fieldName).allOptions.add(data);
       mapAdd(n);
       return true;
     }
@@ -351,20 +384,20 @@ public class TagData {
   }
 
   // helper
-  static boolean putStringOption(String pardata, String... data) {
+  static boolean putCategOption(String pardata, String... data) {
     boolean res = true;
     for (String d : data) {
-      res &= putStringOption(pardata, d);
+      res &= putCategOption(pardata, d);
     }
     return res;
   }
 
-  // For a given StringOption, adds the Tag t as a default value implied by the
+  // For a given CategOption, adds the Tag t as a default value implied by the
   // presence of val. It is required that the Tag t be valid Tag for a direct
-  // subfield of the StringField associated with StringOption val.
-  static boolean putStringDefault(String val, Tag t) {
-    StringOption n = SOmap.get(val);
-    StringField p = SFmap.get(n.fieldName);
+  // subfield of the CategField associated with CategOption val.
+  static boolean putCategDefault(String val, Tag t) {
+    CategOption n = COmap.get(val);
+    CategField p = CFmap.get(n.fieldName);
     if (n == null || p == null) {
       return false;
     }
@@ -372,10 +405,10 @@ public class TagData {
   }
 
   // helper
-  static boolean putStringDefault(String pardata, Tag... tags) {
+  static boolean putCategDefault(String pardata, Tag... tags) {
     boolean res = true;
     for (Tag t : tags) {
-      res &= putStringDefault(pardata, t);
+      res &= putCategDefault(pardata, t);
     }
     return res;
   }
@@ -404,10 +437,10 @@ public class TagData {
   // It's required that "subfield" be a direct subfield of the provided Tag
   // Recursive calling is handled by TagSet.java
   static Tag getDefault(Tag value, String subfield) {
-    if (value == null || value.fieldName() == null) {
+    if (value == null || value.fieldName == null) {
       return null;
     }
-    FieldWithDefs n = FWDmap.get(value.fieldName());
+    FieldWithDefs n = FWDmap.get(value.fieldName);
     if (n == null) {
       return null;
     }
@@ -421,7 +454,7 @@ public class TagData {
     return map.get(data).fieldName;
   }
 
-  // used to determine what field a given StringOption/field should inherit from
+  // used to determine what field a given CategOption/field should inherit from
   static String getParentFieldName(String data) {
     if (data == null || map.get(data) == null || map.get(data).parent == null) {
       return null;
@@ -437,24 +470,20 @@ public class TagData {
   }
 
   // determines whether a given tag is valid
-  static boolean isValid(Tag t) {
-    String field = t.fieldName();
+  static boolean isValid(Tag tag) {
+    String field = tag.fieldName;
     BoolField Bf = BFmap.get(field);
-    StringField Sf = SFmap.get(field);
+    CategField Cf = CFmap.get(field);
     RealField Rf = RFmap.get(field);
+    StringField Sf = SFmap.get(field);
     if (Bf != null) {
-      if (t.bool != null && t.min == null && t.name.equals(field)) {
-        return true;
-      }
+      return (tag instanceof BoolTag);
     } else if (Rf != null) {
-      if (t.bool == null && t.min != null && t.max != null && t.min <= t.max
-          && t.name.equals(field)) {
-        return true;
-      }
+      return (tag instanceof RealTag);
     } else if (Sf != null) {
-      if (t.bool == null && t.min == null) {
-        return true;
-      }
+      return (tag instanceof StringTag);
+    } else if (Cf != null) {
+      return (tag instanceof CategTag);
     }
     return false;
   }
@@ -468,14 +497,14 @@ public class TagData {
 
   // recursive print helper
   public static void printAllR(Node curnode, int depth, Map<String, Tag> defs) {
-    if (curnode instanceof StringField) {
-      StringField cur = (StringField) curnode;
+    if (curnode instanceof CategField) {
+      CategField cur = (CategField) curnode;
       System.out.print(indent(depth) + "cat " + cur.name);
       if (cur.rootOptions.size() == 0 && cur.subfields.size() == 0) {
         System.out.println(";");
       } else {
         System.out.println(" {");
-        for (StringOption o : cur.rootOptions) {
+        for (CategOption o : cur.rootOptions) {
           printAllR(o, depth + 1, cur.defaults.get(o.name));
         }
         for (Field f : cur.subfields) {
@@ -486,6 +515,9 @@ public class TagData {
     } else if (curnode instanceof RealField) {
       RealField cur = (RealField) curnode;
       System.out.println(indent(depth) + "real " + cur.name + ";");
+    } else if (curnode instanceof StringField) {
+      StringField cur = (StringField) curnode;
+      System.out.println(indent(depth) + "str " + cur.name + ";");
     } else if (curnode instanceof BoolField) {
       BoolField cur = (BoolField) curnode;
       System.out.print(indent(depth) + "bool " + cur.name);
@@ -498,8 +530,8 @@ public class TagData {
         }
         System.out.println(indent(depth) + "}");
       }
-    } else if (curnode instanceof StringOption) {
-      StringOption cur = (StringOption) curnode;
+    } else if (curnode instanceof CategOption) {
+      CategOption cur = (CategOption) curnode;
       System.out.print(indent(depth) + "opt " + cur.name);
       if (cur.suboptions.size() == 0
           && (defs == null || defs.keySet().size() == 0)) {
@@ -508,25 +540,27 @@ public class TagData {
         System.out.println(" {");
         if (defs != null) {
           for (String key : defs.keySet()) {
-            Tag t = defs.get(key);
-            if (SFmap.get(key) != null) {
-              System.out.println(indent(depth + 1) + "~" + t.name + ";");
-            } else if (BFmap.get(key) != null) {
-              System.out.println(indent(depth + 1) + "~" + t.name + ": "
-                  + t.bool + ";");
-            } else if (RFmap.get(key) != null) {
+            Tag tag = defs.get(key);
+            if (tag instanceof CategTag) {
+              System.out.println(indent(depth + 1) + "~"
+                  + ((CategTag) tag).name + ";");
+            } else if (tag instanceof BoolTag) {
+              System.out.println(indent(depth + 1) + "~" + tag.fieldName + ": "
+                  + ((BoolTag) tag).val + ";");
+            } else if (tag instanceof RealTag) {
+              RealTag t = (RealTag) tag;
               if (t.min.equals(t.max)) {
-                System.out.println(indent(depth + 1) + "~" + t.name + ": "
-                    + t.min + ";");
+                System.out.println(indent(depth + 1) + "~" + tag.fieldName
+                    + ": " + t.min + ";");
               } else {
-                System.out.println(indent(depth + 1) + "~" + t.name + ": "
-                    + t.min + "," + t.max + ";");
+                System.out.println(indent(depth + 1) + "~" + tag.fieldName
+                    + ": " + t.min + "," + t.max + ";");
               }
             }
           }
         }
-        for (StringOption o : cur.suboptions) {
-          printAllR(o, depth + 1, SFmap.get(cur.fieldName).defaults.get(o.name));
+        for (CategOption o : cur.suboptions) {
+          printAllR(o, depth + 1, CFmap.get(cur.fieldName).defaults.get(o.name));
         }
         System.out.println(indent(depth) + "}");
       }
