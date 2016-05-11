@@ -1,20 +1,19 @@
 # Keywords (case-insensitive): cat opt str real bool true false
 # Key-characters: semicolon, curly braces, octothorpe, double quotes, comma
 # Reserved characters: colon
+# Commas can be used to separate field names of the same type
 # Newlines are optional and can be replaced by a space
-# Semicolons after field names or before closing braces are optional
+# Semicolons after before closing braces are optional
 
-str name;
+str name unnamed;
 cat shape {
   real volume;
-  real capacity;
+  real capacity 0;
   opt log {
     volume 1.4;
-    capacity 0;
   }
   opt block {
     volume 0.5;
-    capacity 0;
   }
   opt box {
     volume 0.3;
@@ -22,9 +21,9 @@ cat shape {
   }
 }
 cat material {
-  bool flammable;
+  bool flammable false;
   real density;
-  cat color {
+  cat color grey {
     opt red,orange,yellow,green,blue,violet,white,grey,black,brown{opt reddish-brown},transparent;
   }
   opt wood {
@@ -34,8 +33,6 @@ cat material {
     opt mahogany{reddish-brown},oak,maple,pine;
   }
   opt metal {
-    flammable false;
-    color grey;
     density 8;
     opt iron {density 7.87}
     opt zinc {density 7.13}
@@ -45,14 +42,11 @@ cat material {
     opt gold {density 19.32; yellow}
   }
   opt air {
-    flammable false;
     transparent;
     density 0.001205;
     opt hydrogen{flammable true},oxygen{flammable true}
   }
   opt stone {
-    flammable false;
-    color grey;
     density 2.5;
     opt sandstone {
       yellow; #?
