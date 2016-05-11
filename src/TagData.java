@@ -29,6 +29,9 @@ public class TagData {
     String fieldName;
     // where inheritance comes from
     Node parent;
+    Tag implicit;
+
+    abstract boolean setImplicit(Tag t);
   }
 
   // everything that can act as a "key"
@@ -116,6 +119,15 @@ public class TagData {
       defs.put(subfield, val);
       return true;
     }
+
+    @Override
+    boolean setImplicit(Tag t) {
+      if (t.fieldName.equals(this.fieldName) && isValid(t)) {
+        this.implicit = t;
+        return true;
+      }
+      return false;
+    }
   }
 
   private static class CategOption extends Node {
@@ -127,6 +139,23 @@ public class TagData {
       this.fieldName = fieldName;
       this.suboptions = new HashSet<CategOption>();
       this.parent = parent;
+    }
+
+    @Override
+    boolean setImplicit(Tag tag) {
+      if (tag instanceof CategTag) {
+        CategTag t = (CategTag) tag;
+        if (t.fieldName.equals(this.fieldName) && isValid(t)
+            && !t.name.equals(this.name)) {
+          for (Node cur = COmap.get(t.name); cur != null
+              && t.fieldName.equals(this.fieldName); cur = cur.parent) {
+            if (cur == this) {
+              implicit = t;
+            }
+          }
+        }
+      }
+      return false;
     }
   }
 
@@ -172,6 +201,15 @@ public class TagData {
       }
       return true;
     }
+
+    @Override
+    boolean setImplicit(Tag t) {
+      if (t.fieldName.equals(this.fieldName) && isValid(t)) {
+        this.implicit = t;
+        return true;
+      }
+      return false;
+    }
   }
 
   private static class RealField extends Field {
@@ -180,6 +218,15 @@ public class TagData {
       this.name = name;
       this.fieldName = name;
     }
+
+    @Override
+    boolean setImplicit(Tag t) {
+      if (t.fieldName.equals(this.fieldName) && isValid(t)) {
+        this.implicit = t;
+        return true;
+      }
+      return false;
+    }
   }
 
   private static class StringField extends Field {
@@ -187,6 +234,15 @@ public class TagData {
     StringField(String name) {
       this.name = name;
       this.fieldName = name;
+    }
+
+    @Override
+    boolean setImplicit(Tag t) {
+      if (t.fieldName.equals(this.fieldName) && isValid(t)) {
+        this.implicit = t;
+        return true;
+      }
+      return false;
     }
   }
 
@@ -397,6 +453,14 @@ public class TagData {
     return n.getDefault(value, subfield);
   }
 
+  static boolean setImplicit(String name, Tag tag) {
+    return map.get(name).setImplicit(tag);
+  }
+
+  static Tag getImplicit(String name) {
+    return map.get(name).implicit;
+  }
+
   static String getFieldName(String data) {
     if (data == null || map.get(data) == null) {
       return null;
@@ -458,6 +522,9 @@ public class TagData {
     if (curnode instanceof CategField) {
       CategField cur = (CategField) curnode;
       System.out.print(indent(depth) + "cat " + cur.name);
+      if (cur.implicit != null) {
+        System.out.print(" " + ((CategTag) cur.implicit).name);
+      }
       if (cur.rootOptions.size() == 0 && cur.subfields.size() == 0) {
         System.out.println(";");
       } else {
@@ -472,13 +539,28 @@ public class TagData {
       }
     } else if (curnode instanceof RealField) {
       RealField cur = (RealField) curnode;
-      System.out.println(indent(depth) + "real " + cur.name + ";");
+      System.out.print(indent(depth) + "real " + cur.name);
+      if (cur.implicit != null) {
+        RealTag imp = (RealTag) cur.implicit;
+        System.out.print(" " + imp.min);
+        if (!imp.min.equals(imp.max)) {
+          System.out.print(" " + imp.min);
+        }
+      }
+      System.out.println(";");
     } else if (curnode instanceof StringField) {
       StringField cur = (StringField) curnode;
-      System.out.println(indent(depth) + "str " + cur.name + ";");
+      System.out.print(indent(depth) + "str " + cur.name);
+      if (cur.implicit != null) {
+        System.out.print(" " + ((StringTag) cur.implicit).name);
+      }
+      System.out.println(";");
     } else if (curnode instanceof BoolField) {
       BoolField cur = (BoolField) curnode;
       System.out.print(indent(depth) + "bool " + cur.name);
+      if (cur.implicit != null) {
+        System.out.print(" " + ((BoolTag) cur.implicit).val);
+      }
       if (cur.subfields.size() == 0) {
         System.out.println(";");
       } else {
@@ -509,6 +591,9 @@ public class TagData {
     } else if (curnode instanceof CategOption) {
       CategOption cur = (CategOption) curnode;
       System.out.print(indent(depth) + "opt " + cur.name);
+      if (cur.implicit != null) {
+        System.out.print(" " + ((CategTag) cur.implicit).name);
+      }
       if (cur.suboptions.size() == 0
           && (defs == null || defs.keySet().size() == 0)) {
         System.out.println(";");
