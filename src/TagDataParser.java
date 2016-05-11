@@ -7,8 +7,11 @@ import java.util.Set;
 public class TagDataParser {
 
   static ArrayList<String> tokens = new ArrayList<String>();
-  static final String singletons = ";{}";
-  static final String seps = " :,";
+  // characters that are their own token
+  static final String singletons = ",;{}";
+  // separators, repetition is ignored
+  static final String seps = " :";
+  // keywords that indicate a node
   static final ArrayList<String> types = new ArrayList<String>();
   static {
     types.add("str");
@@ -18,14 +21,18 @@ public class TagDataParser {
     types.add("opt");
   }
 
+  // splits text into tokens, appended to list
   public static void tokenize(String input) {
     char[] inchars = input.toCharArray();
+    // accumulator of characters for the current token
     String curtoken = "";
+    // whether currently in quotes
     boolean quote = false;
     for (int i = 0; i < inchars.length; i++) {
       String curchar = Character.toString(inchars[i]);
       if (quote) {
         if (curchar.equals("\"")) {
+          // exiting quotes
           tokens.add(curtoken);
           curtoken = "";
           quote = false;
@@ -33,30 +40,37 @@ public class TagDataParser {
           curtoken += curchar;
         }
       } else if (curchar.equals("#")) {
+        // assumes tokenize is called seperately on each line
         break;
       } else if (curchar.equals("\"")) {
+        // entering quotes
         quote = true;
       } else if (singletons.contains(curchar)) {
+        // character is its own token
         if (curtoken.length() > 0) {
           tokens.add(curtoken);
           curtoken = "";
         }
         tokens.add(curchar);
       } else if (seps.contains(curchar) || curchar.equals("\n")) {
+        // separators
         if (curtoken.length() > 0) {
           tokens.add(curtoken);
           curtoken = "";
         }
       } else {
+        // accumulate
         curtoken += curchar;
       }
     }
     if (curtoken.length() > 0) {
+      // end of string reached, whatever's left is a token
       tokens.add(curtoken);
       curtoken = "";
     }
   }
 
+  // map of name to node
   private static Map<String, Node> map = new HashMap<String, Node>();
 
   private static class Node {
@@ -81,24 +95,39 @@ public class TagDataParser {
     parse(root);
   }
 
+  // "cur" is the node we are currently inside of.
   private static void parse(Node cur) {
     while (tokens.size() > 0) {
+      // childType normally contains a type, but sometimes other delimiters
       String childType = tokens.remove(0).toLowerCase();
       if (childType.equals("}")) {
+        // exiting a level
         return;
       } else if (types.contains(childType)) {
-        String childName = tokens.remove(0).toLowerCase();
-        Node child = new Node(childType, childName, cur);
-        map.put(childName, child);
-        cur.children.add(child);
-        String open = tokens.get(0);
-        if (open.equals("{") || open.equals(";")) {
-          tokens.remove(0);
-          if (open.equals("{")) {
-            parse(child);
+        String open;
+        // do-while loop so commas can delimit names of the same type
+        do {
+          String childName = tokens.remove(0).toLowerCase();
+          Node child = new Node(childType, childName, cur);
+          map.put(childName, child);
+          cur.children.add(child);
+          if (tokens.size() == 0) {
+            return;
           }
-        }
+          open = tokens.get(0);
+          if (open.equals("{") || open.equals(";") || open.equals(",")) {
+            tokens.remove(0);
+            if (open.equals("{")) {
+              parse(child); // entering child
+              if (tokens.size() > 0 && tokens.get(0).equals(",")) {
+                open = tokens.remove(0);
+              }
+            }
+          }
+          // if "open" is some other word, then a delimiter isn't needed
+        } while (open.equals(","));
       } else if (childType.equals("true") || childType.equals("false")) {
+        // special nodes with no specific name
         Node child = new Node(childType, null, cur);
         cur.children.add(child);
         String open = tokens.remove(0);
@@ -106,6 +135,7 @@ public class TagDataParser {
           parse(child);
         }
       } else {
+        // a default tag value
         ArrayList<String> defTag = new ArrayList<String>();
         defTag.add(childType);
         while (!tokens.get(0).equals(";") && !tokens.get(0).equals("}")) {
@@ -168,6 +198,7 @@ public class TagDataParser {
     }
   }
 
+  // puts default tag values
   public static void genDefs(Node cur) {
     if (cur.type.equals("opt")) {
       for (ArrayList<String> def : cur.defs) {
@@ -206,7 +237,7 @@ public class TagDataParser {
       return null;
     }
     String fieldType = node.type;
-    if (fieldType.equals("cat")) {
+    if (fieldType.equals("opt")) {
       if (tdata.size() == 1) {
         return new CategTag(title);
       }
@@ -230,6 +261,11 @@ public class TagDataParser {
           return new BoolTag(title, true);
         } else if (data.toLowerCase().equals("false")) {
           return new BoolTag(title, false);
+        }
+      } else if (fieldType.equals("cat")) {
+        Tag res = new CategTag(data);
+        if (res.fieldName.equals(title)) {
+          return res;
         }
       }
     }
