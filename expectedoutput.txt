@@ -1,10 +1,10 @@
 Tag data:
+str name unnamed;
 cat shape {
-  real capacity;
+  real capacity 0.0;
   real volume;
   opt log {
     volume 1.4;
-    capacity 0.0;
   }
   opt box {
     volume 0.3;
@@ -12,37 +12,71 @@ cat shape {
   }
   opt block {
     volume 0.5;
-    capacity 0.0;
   }
 }
 cat material {
-  real density;
-  cat color {
-    opt green;
-    opt orange;
-    opt violet;
-    opt grey;
-    opt white;
-    opt transparent;
-    opt red;
-    opt blue;
-    opt yellow;
+  cat color grey {
     opt black;
+    opt transparent;
+    opt white;
+    opt violet;
     opt brown {
       opt reddish-brown;
     }
+    opt blue;
+    opt red;
+    opt orange;
+    opt yellow;
+    opt green;
+    opt grey;
   }
-  bool flammable;
+  bool flammable false;
+  real density;
+  opt wood {
+    density 0.75;
+    brown;
+    flammable true;
+    opt pine;
+    opt oak;
+    opt mahogany {
+      reddish-brown;
+    }
+    opt maple;
+  }
+  opt air {
+    density 0.001205;
+    transparent;
+    opt hydrogen {
+      flammable true;
+    }
+    opt oxygen {
+      flammable true;
+    }
+  }
+  opt metal {
+    density 8.0;
+    opt gold {
+      density 19.32;
+      yellow;
+    }
+    opt silver {
+      density 10.49;
+    }
+    opt iron {
+      density 7.87;
+    }
+    opt aluminum {
+      density 2.74;
+    }
+    opt zinc {
+      density 7.13;
+    }
+    opt steel {
+      density 7.8;
+    }
+  }
   opt stone {
     density 2.5;
-    grey;
-    flammable false;
-    opt limestone {
-      density 2.91;
-    }
-    opt granite {
-      density 2.45;
-    }
     opt sandstone {
       density 2.4;
       yellow;
@@ -51,82 +85,41 @@ cat material {
       density 2.65;
       white;
     }
-  }
-  opt metal {
-    density 8.0;
-    grey;
-    flammable false;
-    opt iron {
-      density 7.87;
+    opt granite {
+      density 2.45;
     }
-    opt aluminum {
-      density 2.74;
+    opt limestone {
+      density 2.91;
     }
-    opt silver {
-      density 10.49;
-    }
-    opt zinc {
-      density 7.13;
-    }
-    opt gold {
-      density 19.32;
-      yellow;
-    }
-    opt steel {
-      density 7.8;
-    }
-  }
-  opt air {
-    density 0.001205;
-    transparent;
-    flammable false;
-    opt hydrogen {
-      flammable true;
-    }
-    opt oxygen {
-      flammable true;
-    }
-  }
-  opt wood {
-    density 0.75;
-    brown;
-    flammable true;
-    opt mahogany {
-      reddish-brown;
-    }
-    opt oak;
-    opt pine;
-    opt maple;
   }
 }
-str name;
 
-[name:rand][material:marble][shape:log]
-[density:2.65][color:white][name:rand][volume:1.4][flammable:false][capacity:0.0][shape:log][material:marble]
+[shape:block][material:hydrogen]
+[density:0.001205][color:transparent][name:unnamed][volume:0.5][flammable:true][capacity:0.0][shape:block][material:hydrogen]
 
-[material:oxygen][name:rand][shape:box]
-[density:0.001205][color:transparent][name:rand][volume:0.3][flammable:true][capacity:1.0][shape:box][material:oxygen]
+[material:maple][shape:block]
+[density:0.75][color:brown][name:unnamed][volume:0.5][flammable:true][capacity:0.0][shape:block][material:maple]
 
-[material:granite][name:rand][shape:block]
-[density:2.45][color:grey][name:rand][volume:0.5][flammable:false][capacity:0.0][shape:block][material:granite]
+[shape:box][material:oak]
+[density:0.75][color:brown][name:unnamed][volume:0.3][flammable:true][capacity:1.0][shape:box][material:oak]
 
-[name:rand][material:hydrogen][shape:log]
-[density:0.001205][color:transparent][name:rand][volume:1.4][flammable:true][capacity:0.0][shape:log][material:hydrogen]
+[material:oxygen][shape:box]
+[density:0.001205][color:transparent][name:unnamed][volume:0.3][flammable:true][capacity:1.0][shape:box][material:oxygen]
 
-[name:rand][material:sandstone][shape:box]
-[density:2.4][color:yellow][name:rand][volume:0.3][flammable:false][capacity:1.0][shape:box][material:sandstone]
+[material:wood][shape:block]
+[density:0.75][color:brown][name:unnamed][volume:0.5][flammable:true][capacity:0.0][shape:block][material:wood]
 
-[material:maple][name:rand][shape:log]
-[density:0.75][color:brown][name:rand][volume:1.4][flammable:true][capacity:0.0][shape:log][material:maple]
+[material:limestone][shape:block]
+[density:2.91][color:grey][name:unnamed][volume:0.5][flammable:false][capacity:0.0][shape:block][material:limestone]
 
-[material:wood][shape:box][name:rand]
-[density:0.75][color:brown][name:rand][volume:0.3][flammable:true][capacity:1.0][shape:box][material:wood]
+[shape:log][material:oak]
+[density:0.75][color:brown][name:unnamed][volume:1.4][flammable:true][capacity:0.0][shape:log][material:oak]
 
-[shape:block][name:rand][material:mahogany]
-[density:0.75][color:reddish-brown][name:rand][volume:0.5][flammable:true][capacity:0.0][shape:block][material:mahogany]
+[material:metal][shape:block]
+[density:8.0][color:grey][name:unnamed][volume:0.5][flammable:false][capacity:0.0][shape:block][material:metal]
 
-[material:zinc][shape:log][name:rand]
-[density:7.13][color:grey][name:rand][volume:1.4][flammable:false][capacity:0.0][shape:log][material:zinc]
+[material:aluminum][shape:block]
+[density:2.74][color:grey][name:unnamed][volume:0.5][flammable:false][capacity:0.0][shape:block][material:aluminum]
 
-[name:rand][shape:log][material:sandstone]
-[density:2.4][color:yellow][name:rand][volume:1.4][flammable:false][capacity:0.0][shape:log][material:sandstone]
+[material:iron][shape:box]
+[density:7.87][color:grey][name:unnamed][volume:0.3][flammable:false][capacity:1.0][shape:box][material:iron]
