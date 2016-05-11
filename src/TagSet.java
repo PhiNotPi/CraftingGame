@@ -70,7 +70,11 @@ public class TagSet {
       return map.get(field);
     }
     String par = TagData.getParentFieldName(field);
-    return TagData.getDefault(getTag(par), field);
+    Tag res = TagData.getDefault(getTag(par), field);
+    if (res == null) {
+      res = TagData.getImplicit(field);
+    }
+    return res;
   }
 
 }
