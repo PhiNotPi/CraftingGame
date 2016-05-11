@@ -14,6 +14,9 @@ public class Main {
     TagDataParser.build();
     // TagDataParser.print();
     System.out.println("Tag data:");
+    // TagData.setImplicit("stone", new CategTag("sandstone"));
+    // TagData.setImplicit("flammable", new BoolTag("flammable",false));
+    // TagData.setImplicit("name", new StringTag("name","whatever"));
     TagData.printAll();
 
     for (int i = 0; i < 10; i++) {
