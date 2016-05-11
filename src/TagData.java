@@ -1,6 +1,8 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 public class TagData {
@@ -417,6 +419,14 @@ public class TagData {
     return res;
   }
 
+  // returns all options, used to list every possible categorical tag of an
+  // object
+  static Set<String> getAllOptions() {
+    Set<String> res = new HashSet<String>();
+    res.addAll(COmap.keySet());
+    return res;
+  }
+
   // determines whether a given tag is valid
   static boolean isValid(Tag tag) {
     String field = tag.fieldName;
@@ -452,11 +462,11 @@ public class TagData {
         System.out.println(";");
       } else {
         System.out.println(" {");
-        for (CategOption o : cur.rootOptions) {
-          printAllR(o, depth + 1, cur.defaults.get(o.name));
-        }
         for (Field f : cur.subfields) {
           printAllR(f, depth + 1, null);
+        }
+        for (CategOption o : cur.rootOptions) {
+          printAllR(o, depth + 1, cur.defaults.get(o.name));
         }
         System.out.println(indent(depth) + "}");
       }
@@ -526,6 +536,44 @@ public class TagData {
       res += "  ";
     }
     return res;
+  }
+
+  public static Random rand = new Random();
+
+  // generate random TagSet
+  public static TagSet randomTS() {
+    TagSet res = new TagSet();
+    for (Field f : rootFields) {
+      randomTS(res, f);
+    }
+    return res;
+  }
+
+  // randomly/recursively fill a field
+  public static void randomTS(TagSet t, Field field) {
+    if (t.getTag(field.fieldName) != null) {
+      return;
+    } else if (field instanceof RealField) {
+      t.add(new RealTag(field.fieldName, rand.nextInt(100)));
+    } else if (field instanceof BoolField) {
+      t.add(new BoolTag(field.fieldName, rand.nextBoolean()));
+      FieldWithDefs cur = (FieldWithDefs) field;
+      for (Field ch : cur.subfields) {
+        randomTS(t, ch);
+      }
+    } else if (field instanceof StringField) {
+      t.add(new StringTag(field.fieldName, "rand"));
+    } else if (field instanceof CategField) {
+      CategField cur = (CategField) field;
+      ArrayList<String> opts = new ArrayList<String>();
+      opts.addAll(cur.allOptions);
+      if (opts.size() > 0) {
+        t.add(new CategTag(opts.get(rand.nextInt(opts.size()))));
+      }
+      for (Field ch : cur.subfields) {
+        randomTS(t, ch);
+      }
+    }
   }
 
 }
