@@ -79,6 +79,7 @@ public class TagDataParser {
     Node parent;
     Set<Node> children;
     Set<ArrayList<String>> defs;
+    ArrayList<String> imp;
 
     Node(String type, String name, Node parent) {
       this.type = type;
@@ -86,6 +87,7 @@ public class TagDataParser {
       this.parent = parent;
       this.children = new HashSet<Node>();
       this.defs = new HashSet<ArrayList<String>>();
+      this.imp = new ArrayList<String>();
     }
   }
 
@@ -114,17 +116,27 @@ public class TagDataParser {
           if (tokens.size() == 0) {
             return;
           }
-          open = tokens.get(0);
-          if (open.equals("{") || open.equals(";") || open.equals(",")) {
-            tokens.remove(0);
-            if (open.equals("{")) {
-              parse(child); // entering child
-              if (tokens.size() > 0 && tokens.get(0).equals(",")) {
-                open = tokens.remove(0);
-              }
+          open = tokens.remove(0);
+          while (!(open.equals("{") || open.equals(";") || open.equals(","))) {
+            if(open.equals("}")){
+              return;
+            }
+            // some other word indicates an implicit value
+            if(child.imp.size() == 0){
+              child.imp.add(childName);
+            }
+            child.imp.add(open);
+            if (tokens.size() == 0) {
+              return;
+            }
+            open = tokens.remove(0);
+          }
+          if (open.equals("{")) {
+            parse(child); // entering child
+            if (tokens.size() > 0 && tokens.get(0).equals(",")) {
+              open = tokens.remove(0);
             }
           }
-          // if "open" is some other word, then a delimiter isn't needed
         } while (open.equals(","));
       } else if (childType.equals("true") || childType.equals("false")) {
         // special nodes with no specific name
@@ -221,6 +233,9 @@ public class TagDataParser {
           TagData.putBoolDefault(cur.parent.name, false, defTag);
         }
       }
+    }
+    if(cur.imp.size() > 0){
+      TagData.setImplicit(cur.name, buildTag(cur.imp));
     }
     for (Node n : cur.children) {
       genDefs(n);
