@@ -122,7 +122,7 @@ public class TagDataParser {
               return;
             }
             // some other word indicates an implicit value
-            if (child.imp.size() == 0) {
+            if (child.imp.size() == 0 && !childType.equals("opt")) {
               child.imp.add(childName);
             }
             child.imp.add(open);
