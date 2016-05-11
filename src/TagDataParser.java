@@ -118,11 +118,11 @@ public class TagDataParser {
           }
           open = tokens.remove(0);
           while (!(open.equals("{") || open.equals(";") || open.equals(","))) {
-            if(open.equals("}")){
+            if (open.equals("}")) {
               return;
             }
             // some other word indicates an implicit value
-            if(child.imp.size() == 0){
+            if (child.imp.size() == 0) {
               child.imp.add(childName);
             }
             child.imp.add(open);
@@ -234,7 +234,7 @@ public class TagDataParser {
         }
       }
     }
-    if(cur.imp.size() > 0){
+    if (cur.imp.size() > 0) {
       TagData.setImplicit(cur.name, buildTag(cur.imp));
     }
     for (Node n : cur.children) {
