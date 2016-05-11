@@ -1,30 +1,65 @@
 # Keywords (case-insensitive): cat opt str real bool true false
-# Key-characters: semicolon, curly braces, octothorpe, double quotes
-# Reserved characters: colon, comma
+# Key-characters: semicolon, curly braces, octothorpe, double quotes, comma
+# Reserved characters: colon
 # Newlines are optional and can be replaced by a space
 # Semicolons after field names or before closing braces are optional
 
-str name;                     # optional semicolon
+str name;
 cat shape {
-  opt log {
-    volume 1.4;               # colon before number is optional (but discouraged)
-  }
   real volume;
+  real capacity;
+  opt log {
+    volume 1.4;
+    capacity 0;
+  }
+  opt block {
+    volume 0.5;
+    capacity 0;
+  }
+  opt box {
+    volume 0.3;
+    capacity 1;
+  }
 }
 cat material {
-  opt wood {
-    density 2.7;
-    Flammable tRUe;           # case-insensitive.  Uses the field type of "flammable" to correct "tRUe" to "true"
-    Misc "Test String";       # case-sensitive data
-    opt mahogany;
-    opt oak;
-  }
-  real density;
-  str misc;
-  cat color {
-    opt brown {
-      opt reddish-brown;      # doesn't have to be expanded with braces if it is empty
-    }
-  }
   bool flammable;
+  real density;
+  cat color {
+    opt red,orange,yellow,green,blue,violet,white,grey,black,brown{opt reddish-brown},transparent;
+  }
+  opt wood {
+    density 0.75;
+    flammable true;
+    color brown;
+    opt mahogany{reddish-brown},oak,maple,pine;
+  }
+  opt metal {
+    flammable false;
+    color grey;
+    density 8;
+    opt iron {density 7.87}
+    opt zinc {density 7.13}
+    opt silver {density 10.49}
+    opt aluminum {density 2.74}
+    opt steel {density 7.8}
+    opt gold {density 19.32; yellow}
+  }
+  opt air {
+    flammable false;
+    transparent;
+    density 0.001205;
+    opt hydrogen{flammable true},oxygen{flammable true}
+  }
+  opt stone {
+    flammable false;
+    color grey;
+    density 2.5;
+    opt sandstone {
+      yellow; #?
+      density 2.40;
+    }
+    opt limestone {density 2.91}
+    opt granite {density 2.45}
+    opt marble {density 2.65; white}
+  }
 }
