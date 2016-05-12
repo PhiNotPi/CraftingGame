@@ -60,6 +60,10 @@ public class TagSet {
     System.out.println();
   }
 
+  public Set<Tag> getTags() {
+    return tags;
+  }
+
   // determine the Tag associated with a given Field, using recursive calls to
   // tag defaults if needed
   public Tag getTag(String field) {
@@ -75,6 +79,11 @@ public class TagSet {
       res = TagData.getImplicit(field);
     }
     return res;
+  }
+
+  @Override
+  public String toString() {
+    return tags.toString();
   }
 
 }
