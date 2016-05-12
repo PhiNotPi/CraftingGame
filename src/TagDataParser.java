@@ -252,9 +252,12 @@ public class TagDataParser {
       return null;
     }
     String fieldType = node.type;
-    if (fieldType.equals("opt")) {
-      if (tdata.size() == 1) {
+
+    if (tdata.size() == 1) {
+      if (fieldType.equals("opt")) {
         return new CategTag(title);
+      } else if (fieldType.equals("bool")) {
+        return new BoolTag(title, true);
       }
     } else if (fieldType.equals("real")) {
       try {
