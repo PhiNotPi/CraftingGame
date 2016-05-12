@@ -673,7 +673,7 @@ public class TagData {
         && !(rand.nextBoolean() && field instanceof CategField)) {
       return;
     } else if (field instanceof RealField) {
-      t.add(new RealTag(field.fieldName, rand.nextInt(100)));
+      // t.add(new RealTag(field.fieldName, rand.nextInt(100)));
     } else if (field instanceof BoolField) {
       t.add(new BoolTag(field.fieldName, rand.nextBoolean()));
       FieldWithDefs cur = (FieldWithDefs) field;
