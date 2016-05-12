@@ -20,4 +20,30 @@ public class RealTag extends Tag {
     }
     return "[" + fieldName + ":" + min + "," + max + "]";
   }
+
+  @Override
+  public boolean isa(Tag tag) {
+    if (tag == null || !(tag instanceof RealTag)) {
+      return false;
+    }
+    RealTag other = (RealTag) tag;
+    if (this.fieldName.equals(other.fieldName) && this.min >= other.min
+        && this.max <= other.max) {
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null || !(obj instanceof RealTag)) {
+      return false;
+    }
+    RealTag other = (RealTag) obj;
+    if (this.fieldName.equals(other.fieldName) && this.min.equals(other.min)
+        && this.max.equals(other.max)) {
+      return true;
+    }
+    return false;
+  }
 }
