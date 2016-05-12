@@ -13,18 +13,34 @@ public class Main {
     TagDataParser.parse();
     TagDataParser.build();
     // TagDataParser.print();
-    System.out.println("Tag data:");
+    // System.out.println("Tag data:");
     // TagData.setImplicit("stone", new CategTag("sandstone"));
     // TagData.setImplicit("flammable", new BoolTag("flammable",false));
     // TagData.setImplicit("name", new StringTag("name","whatever"));
     TagData.printAll();
-
-    for (int i = 0; i < 10; i++) {
+    // System.out.println(new CategTag("granite").isa(new CategTag("stone")));
+    Ingredient ing = new Ingredient();
+    ing.pro = TagData.randomTS();
+    System.out.println(ing);
+    TagSet ts = TagData.randomTS();
+    while (!ing.matches(ts)) {
       System.out.println();
-      TagSet ts = TagData.randomTS();
       ts.print();
       ts.printAll();
+      System.out.println(ing.matches(ts));
+      ts = TagData.randomTS();
     }
+    System.out.println();
+    ts.print();
+    ts.printAll();
+    System.out.println(ing.matches(ts));
+
+    // Ingredient ing2 = new Ingredient();
+    // ing2.pro.add(new CategTag("stone"));
+    // TagSet ts2 = new TagSet();
+    // ts2.add(new CategTag("granite"));
+    // System.out.println(ing2.matches(ts2));
+
   }
 
 }
