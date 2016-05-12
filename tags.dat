@@ -26,7 +26,7 @@ cat material {
   cat color grey {
     opt red,orange,yellow,green,blue,violet,white,grey,black,brown{opt reddish-brown},transparent;
   }
-  opt wood {
+  opt wood oak {
     density 0.75;
     flammable true;
     color brown;
