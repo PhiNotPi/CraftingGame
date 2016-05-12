@@ -6,6 +6,7 @@
 # Semicolons after before closing braces are optional
 
 str name unnamed;
+real mass;
 cat shape {
   real volume;
   real capacity 0;
@@ -23,10 +24,11 @@ cat shape {
 cat material {
   bool flammable false;
   real density;
+  real viscosity;
   cat color grey {
     opt red,orange,yellow,green,blue,violet,white,grey,black,brown{opt reddish-brown},transparent;
   }
-  opt wood oak {
+  opt wood {
     density 0.75;
     flammable true;
     color brown;
@@ -37,7 +39,7 @@ cat material {
     opt iron {density 7.87}
     opt zinc {density 7.13}
     opt silver {density 10.49}
-    opt aluminum {density 2.74}
+    opt aluminium {density 2.74}
     opt steel {density 7.8}
     opt gold {density 19.32; yellow}
   }
@@ -55,5 +57,10 @@ cat material {
     opt limestone {density 2.91}
     opt granite {density 2.45}
     opt marble {density 2.65; white}
+  }
+  opt water {
+    density 1;
+    viscosity 0.894;
+    transparent;
   }
 }
