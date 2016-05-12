@@ -128,19 +128,27 @@ public class TagData {
       }
       return false;
     }
+
+    void addOptionR(String opt) {
+      this.allOptions.add(opt);
+    }
   }
 
   private static class CategOption extends Node {
     // options that inherit from it, so "oak" might be a suboption of "wood"
     Set<CategOption> suboptions;
+    Set<String> allOptions;
 
     CategOption(String name, String fieldName, Node parent) {
       this.name = name;
       this.fieldName = fieldName;
       this.suboptions = new HashSet<CategOption>();
       this.parent = parent;
+      this.allOptions = new HashSet<String>();
     }
 
+    // adding implicit values for CategOptions is more complicated
+    // since the tag must be a (possibly indirect) suboption
     @Override
     boolean setImplicit(Tag tag) {
       if (tag instanceof CategTag) {
@@ -156,6 +164,15 @@ public class TagData {
         }
       }
       return false;
+    }
+
+    void addOptionR(String opt) {
+      this.allOptions.add(opt);
+      if (parent instanceof CategOption) {
+        ((CategOption) parent).addOptionR(opt);
+      } else if (parent instanceof CategField) {
+        ((CategField) parent).addOptionR(opt);
+      }
     }
   }
 
@@ -375,14 +392,14 @@ public class TagData {
       // CategField supplied
       CategOption n = new CategOption(data, pF.fieldName, pF);
       pF.rootOptions.add(n);
-      pF.allOptions.add(data);
+      pF.addOptionR(data);
       mapAdd(n);
       return true;
     } else if (pO != null) {
       // CategOption supplied
       CategOption n = new CategOption(data, pO.fieldName, pO);
       pO.suboptions.add(n);
-      CFmap.get(pO.fieldName).allOptions.add(data);
+      pO.addOptionR(data);
       mapAdd(n);
       return true;
     }
@@ -491,6 +508,20 @@ public class TagData {
     return res;
   }
 
+  // returns all suboptions of a given CategOptions
+  static Set<String> getAllOptions(String name) {
+    Set<String> res = new HashSet<String>();
+    CategOption co = COmap.get(name);
+    if (co != null) {
+      res.addAll(co.allOptions);
+    }
+    CategField cf = CFmap.get(name);
+    if (cf != null) {
+      res.addAll(cf.allOptions);
+    }
+    return res;
+  }
+
   // determines whether a given tag is valid
   static boolean isValid(Tag tag) {
     String field = tag.fieldName;
@@ -523,6 +554,7 @@ public class TagData {
       CategField cur = (CategField) curnode;
       System.out.print(indent(depth) + "cat " + cur.name);
       if (cur.implicit != null) {
+        // print implicit tag
         System.out.print(" " + ((CategTag) cur.implicit).name);
       }
       if (cur.rootOptions.size() == 0 && cur.subfields.size() == 0) {
@@ -635,8 +667,10 @@ public class TagData {
   }
 
   // randomly/recursively fill a field
-  public static void randomTS(TagSet t, Field field) {
-    if (t.getTag(field.fieldName) != null) {
+  private static void randomTS(TagSet t, Field field) {
+    // System.out.println("-"+field.fieldName);
+    if (t.getTag(field.fieldName) != null
+        && !(rand.nextBoolean() && field instanceof CategField)) {
       return;
     } else if (field instanceof RealField) {
       t.add(new RealTag(field.fieldName, rand.nextInt(100)));
@@ -653,7 +687,14 @@ public class TagData {
       ArrayList<String> opts = new ArrayList<String>();
       opts.addAll(cur.allOptions);
       if (opts.size() > 0) {
-        t.add(new CategTag(opts.get(rand.nextInt(opts.size()))));
+        CategTag chosenOpt = new CategTag(opts.get(rand.nextInt(opts.size())));
+        // System.out.println("--"+field.fieldName+chosenOpt);
+        while (COmap.get(chosenOpt.name).implicit != null) {
+          // if an option has an implicit value, choose that option
+          chosenOpt = (CategTag) COmap.get(chosenOpt.name).implicit;
+          // System.out.println("--"+field.fieldName+chosenOpt);
+        }
+        t.add(chosenOpt);
       }
       for (Field ch : cur.subfields) {
         randomTS(t, ch);
