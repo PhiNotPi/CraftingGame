@@ -1,22 +1,22 @@
-str name unnamed;
 cat material {
   cat color grey {
+    opt violet;
+    opt grey;
+    opt black;
+    opt white;
+    opt green;
     opt orange;
     opt yellow;
+    opt red;
+    opt transparent;
     opt brown {
       opt reddish-brown;
     }
-    opt transparent;
     opt blue;
-    opt red;
-    opt black;
-    opt grey;
-    opt green;
-    opt white;
-    opt violet;
   }
-  bool flammable false;
+  real viscosity;
   real density;
+  bool flammable false;
   opt metal {
     density 8.0;
     opt silver {
@@ -25,29 +25,18 @@ cat material {
     opt zinc {
       density 7.13;
     }
-    opt iron {
-      density 7.87;
-    }
-    opt aluminum {
-      density 2.74;
-    }
     opt gold {
       density 19.32;
       yellow;
     }
+    opt aluminium {
+      density 2.74;
+    }
+    opt iron {
+      density 7.87;
+    }
     opt steel {
       density 7.8;
-    }
-  }
-  opt wood oak {
-    density 0.75;
-    brown;
-    flammable true;
-    opt maple;
-    opt pine;
-    opt oak;
-    opt mahogany {
-      reddish-brown;
     }
   }
   opt stone {
@@ -67,81 +56,54 @@ cat material {
       density 2.45;
     }
   }
+  opt water {
+    density 1.0;
+    transparent;
+    viscosity 0.894;
+  }
   opt air {
     density 0.001205;
     transparent;
-    opt hydrogen {
-      flammable true;
-    }
     opt oxygen {
       flammable true;
     }
+    opt hydrogen {
+      flammable true;
+    }
+  }
+  opt wood {
+    density 0.75;
+    brown;
+    flammable true;
+    opt maple;
+    opt mahogany {
+      reddish-brown;
+    }
+    opt oak;
+    opt pine;
   }
 }
+real mass;
+str name unnamed;
 cat shape {
-  real capacity 0.0;
   real volume;
+  real capacity 0.0;
   opt block {
     volume 0.5;
+  }
+  opt log {
+    volume 1.4;
   }
   opt box {
     volume 0.3;
     capacity 1.0;
   }
-  opt log {
-    volume 1.4;
-  }
 }
-Ingredient [pro=[[shape:log], [material:stone]], con=[]]
+Recipe [ingredients=[Ingredient [pro=[[material:aluminium], [shape:box]], con=[]], Ingredient [pro=[[shape:block], [material:aluminium], [color:brown]], con=[]], Ingredient [pro=[[color:black], [shape:block], [material:water]], con=[]]]]
 
-[shape:block][material:sandstone]
-[density:2.4][color:yellow][name:unnamed][volume:0.5][flammable:false][capacity:0.0][shape:block][material:sandstone]
-false
-
-[color:orange][shape:log][material:mahogany]
-[density:0.75][color:orange][name:unnamed][volume:1.4][flammable:true][capacity:0.0][shape:log][material:mahogany]
-false
-
-[shape:box][material:gold][color:violet]
-[density:19.32][color:violet][name:unnamed][volume:0.3][flammable:false][capacity:1.0][shape:box][material:gold]
-false
-
-[material:zinc][shape:box]
-[density:7.13][color:grey][name:unnamed][volume:0.3][flammable:false][capacity:1.0][shape:box][material:zinc]
-false
-
-[material:metal][shape:box]
-[density:8.0][color:grey][name:unnamed][volume:0.3][flammable:false][capacity:1.0][shape:box][material:metal]
-false
-
-[color:white][material:mahogany][shape:log]
-[density:0.75][color:white][name:unnamed][volume:1.4][flammable:true][capacity:0.0][shape:log][material:mahogany]
-false
-
-[shape:block][material:sandstone]
-[density:2.4][color:yellow][name:unnamed][volume:0.5][flammable:false][capacity:0.0][shape:block][material:sandstone]
-false
-
-[shape:log][material:oxygen]
-[density:0.001205][color:transparent][name:unnamed][volume:1.4][flammable:true][capacity:0.0][shape:log][material:oxygen]
-false
-
-[material:mahogany][shape:box]
-[density:0.75][color:reddish-brown][name:unnamed][volume:0.3][flammable:true][capacity:1.0][shape:box][material:mahogany]
-false
-
-[material:gold][shape:box][color:blue]
-[density:19.32][color:blue][name:unnamed][volume:0.3][flammable:false][capacity:1.0][shape:box][material:gold]
-false
-
-[color:white][shape:log][material:hydrogen]
-[density:0.001205][color:white][name:unnamed][volume:1.4][flammable:true][capacity:0.0][shape:log][material:hydrogen]
-false
-
-[material:hydrogen][shape:block][color:white]
-[density:0.001205][color:white][name:unnamed][volume:0.5][flammable:true][capacity:0.0][shape:block][material:hydrogen]
-false
-
-[material:marble][shape:log]
-[density:2.65][color:white][name:unnamed][volume:1.4][flammable:false][capacity:0.0][shape:log][material:marble]
-true
+[[material:water], [shape:block], [color:black]]
+  Ingredient [pro=[[color:black], [shape:block], [material:water]], con=[]]
+[[shape:block], [color:reddish-brown], [material:aluminium]]
+  Ingredient [pro=[[shape:block], [material:aluminium], [color:brown]], con=[]]
+[[shape:box], [material:aluminium]]
+  Ingredient [pro=[[material:aluminium], [shape:box]], con=[]]
